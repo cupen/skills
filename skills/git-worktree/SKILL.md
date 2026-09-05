@@ -54,5 +54,5 @@ git worktree add -b <分支> <路径> [<基点>]   # fork 模式
 git worktree add <路径> <分支>               # 复用模式
 ```
 
-- 成功 → 一句话交付：路径、分支、`cd` 过去即可开工；完工收尾交给 git-finish。
+- 成功 → 一句话交付：路径、分支、`cd` 过去即可开工；完工收尾交给 git-finish，多个 worktree 要批量收尾时用 git-worktree-finish。
 - 失败 → 如实报告 git 原因（路径被占 / 分支冲突），按第 1 步预案调整后重新预览确认，不盲目重试。
