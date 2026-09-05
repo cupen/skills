@@ -25,6 +25,7 @@ agent-kit/
 
 - [git-finish](skills/git-finish/SKILL.md) — worktree 收尾：conventional commits、rebase 进 main 保持线性历史、重新验收、推送、总结。
 - [git-worktree](skills/git-worktree/SKILL.md) — 开工区（仅显式调用）：入参功能名与分支名，在旁边建 `../<仓库名>-<功能名>` worktree；分支已存在则复用、不存在则 fork，创建前交互预览。
+- [git-worktree-finish](skills/git-worktree-finish/SKILL.md) — 批量收尾（仅显式调用）：对每个 worktree 依次执行 git-finish，完成后列出全部 worktree，让用户挑选删除。
 
 ## Agents
 
