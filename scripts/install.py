@@ -3,7 +3,7 @@
 
 - 技能（skills/<name>/SKILL.md）：逐个**链接**到技能目录（默认 ~/.agents/skills），
   单一真源、改完即时生效。
-- agents（agents/<name>.md）：真源统一按 Claude Code subagent 标准定义（frontmatter
+- subagents（subagents/<name>.md）：真源统一按 Claude Code subagent 标准定义（frontmatter
   的 name/description + Markdown 正文即系统提示词）；安装时**按目标工具转换格式后
   写入**（转换式安装，不是链接），改了源文件重跑安装命令同步，status 会提示内容漂移：
 
@@ -26,16 +26,16 @@
 - Linux / macOS: 建 symlink
 
 用法:
-  python scripts/install.py                    # 一键安装：全部技能 + 全部 agent（默认，幂等）
-  python scripts/install.py skill [名称...]     # 只装技能
-  python scripts/install.py agent [名称...]     # 只装 agent（默认目标 claude,zcode）
-  python scripts/install.py agent --to all     # agent 装到全部目标
-  python scripts/install.py status [skill|agent] [--to 目标]            # 查看状态（未就位 exit 1）
-  python scripts/install.py remove [skill|agent] [--to 目标] [--force]  # 卸载
+  python scripts/install.py                      # 一键安装：全部技能 + 全部 subagent（默认，幂等）
+  python scripts/install.py skill [名称...]       # 只装技能
+  python scripts/install.py subagent [名称...]    # 只装 subagent（默认目标 claude,zcode）
+  python scripts/install.py subagent --to all    # subagent 装到全部目标
+  python scripts/install.py status [skill|subagent] [--to 目标]            # 查看状态（未就位 exit 1）
+  python scripts/install.py remove [skill|subagent] [--to 目标] [--force]  # 卸载
 
 flags（只有这三个）:
   -n         预览模式：只演示将做什么，不改动
-  --to       agent 的安装目标，可重复、可逗号分隔，all=全部；默认 claude,zcode
+  --to       subagent 的安装目标，可重复、可逗号分隔，all=全部；默认 claude,zcode
   --force    remove 时连内容不一致的文件/非本仓库链接一起移除
 
 技能固定链接到 ~/.agents/skills（各工具共享的技能根目录，skills CLI、dsh 也读它）。
@@ -44,8 +44,8 @@ flags（只有这三个）:
           ! 受阻（实体目录/失败）  ? 需 --force  - 已移除/未安装
 
 约定与保护:
-- 技能目标处若已存在实体目录（私有技能），一律不动；agents 只覆盖本脚本生成的同名
-  文件，实体目录不碰；绝不通过链接写进本仓库 agents/。
+- 技能目标处若已存在实体目录（私有技能），一律不动；subagents 只覆盖本脚本生成的同名
+  文件，实体目录不碰；绝不通过链接写进本仓库 subagents/。
 - status 的退出码：全部就位为 0，否则为 1，可用于脚本探测。
 """
 
@@ -60,7 +60,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 REPO_SKILLS = REPO_ROOT / "skills"
-REPO_AGENTS = REPO_ROOT / "agents"
+REPO_SUBAGENTS = REPO_ROOT / "subagents"
 DEFAULT_TARGET = Path.home() / ".agents" / "skills"
 
 
@@ -206,7 +206,7 @@ def run_skills(command: str, names: list[str], target: Path, force: bool, dry_ru
 
 
 # ---------------------------------------------------------------------------
-# agents：解析 → 按目标转换 → 写入
+# subagents：解析 → 按目标转换 → 写入
 # ---------------------------------------------------------------------------
 
 _KEY_RE = re.compile(r"^([A-Za-z0-9_-]+)\s*:\s*(.*)$")
@@ -226,8 +226,8 @@ def _parse_scalar(raw: str):
     return _strip_quotes(raw)
 
 
-def parse_agent_file(p: Path) -> tuple[dict, dict, str]:
-    """解析 agents/<name>.md，返回 (frontmatter, targets 按目标覆盖, 正文)。
+def parse_subagent_file(p: Path) -> tuple[dict, dict, str]:
+    """解析 subagents/<name>.md，返回 (frontmatter, targets 按目标覆盖, 正文)。
 
     只支持本仓库用到的 YAML 子集：顶层 `key: value`、内联列表 `[a, b]`、
     两层嵌套的 targets 段。解析失败抛 ValueError。
@@ -274,10 +274,10 @@ def parse_agent_file(p: Path) -> tuple[dict, dict, str]:
     return fm, overrides, body
 
 
-def discover_agents() -> list[Path]:
-    if not REPO_AGENTS.is_dir():
+def discover_subagents() -> list[Path]:
+    if not REPO_SUBAGENTS.is_dir():
         return []
-    return sorted(p for p in REPO_AGENTS.glob("*.md") if p.is_file())
+    return sorted(p for p in REPO_SUBAGENTS.glob("*.md") if p.is_file())
 
 
 @dataclass
@@ -423,15 +423,15 @@ def _toml_multiline(s: str) -> str:
 
 
 def emit_toml(prompt_field: str, fields: dict, body: str) -> str:
-    lines = ["# 由 agent-kit scripts/install.py 生成；请修改仓库 agents/ 源文件后重装，勿直接改本文件。"]
+    lines = ["# 由 agent-kit scripts/install.py 生成；请修改仓库 subagents/ 源文件后重装，勿直接改本文件。"]
     for k, v in fields.items():
         lines.append(f"{k} = {_toml_value(v)}")
     lines.append(f"{prompt_field} = {_toml_multiline(body)}")
     return "\n".join(lines) + "\n"
 
 
-def convert_agent(name: str, fm: dict, overrides: dict, body: str, t: Target) -> tuple[str, list[str]]:
-    """把源 agent 定义转换为目标格式，返回 (内容, 丢弃警告)。"""
+def convert_subagent(name: str, fm: dict, overrides: dict, body: str, t: Target) -> tuple[str, list[str]]:
+    """把源 subagent 定义转换为目标格式，返回 (内容, 丢弃警告)。"""
     warnings: list[str] = []
     fields: dict = {}
     mapped = set()
@@ -465,7 +465,7 @@ def _prepare_target_dir(t: Target, command: str, dry_run: bool) -> bool:
     """检查目标目录可写。处理旧版整目录链接的自动迁移；返回 False 表示跳过该目标。"""
     d = t.dirname
     if is_link(d):
-        if resolve(d) == resolve(REPO_AGENTS):
+        if resolve(d) == resolve(REPO_SUBAGENTS):
             if command == "add" and not dry_run:
                 remove_link(d)
                 print(f"  ~ {short(d)}: 已移除旧版整目录链接，改为转换式安装")
@@ -480,15 +480,15 @@ def _prepare_target_dir(t: Target, command: str, dry_run: bool) -> bool:
     return True
 
 
-def _is_inside_repo_agents(dst: Path) -> bool:
-    root = resolve(REPO_AGENTS)
+def _is_inside_repo_subagents(dst: Path) -> bool:
+    root = resolve(REPO_SUBAGENTS)
     r = resolve(dst)
     return r == root or r.startswith(root + os.sep)
 
 
 def write_one(dst: Path, content: str, dry_run: bool) -> tuple[str, str]:
-    if dst.is_symlink() or _is_inside_repo_agents(dst):
-        return "!", "目标是链接或落在本仓库 agents/ 内，拒绝写入"
+    if dst.is_symlink() or _is_inside_repo_subagents(dst):
+        return "!", "目标是链接或落在本仓库 subagents/ 内，拒绝写入"
     if dst.is_dir():
         return "!", "目标位置是实体目录，跳过"
     if dst.exists():
@@ -534,44 +534,44 @@ def probe_one(dst: Path, content: str) -> tuple[str, str, bool]:
     return "-", "未安装", False
 
 
-def check_agent_source(files: list[Path]) -> bool:
+def check_subagent_source(files: list[Path]) -> bool:
     """解析体检：失败或缺关键字段时警告（不阻断安装）。返回是否全部正常。"""
     ok = True
     for p in files:
         try:
-            fm, _, _ = parse_agent_file(p)
+            fm, _, _ = parse_subagent_file(p)
         except ValueError as exc:
-            print(f"警告：agents/{p.name} 解析失败：{exc}", file=sys.stderr)
+            print(f"警告：subagents/{p.name} 解析失败：{exc}", file=sys.stderr)
             ok = False
             continue
         missing = [k for k in ("name", "description") if k not in fm]
         if missing:
             print(
-                f"警告：agents/{p.name} 的 frontmatter 缺 {'、'.join(missing)}，"
-                "多数工具会忽略该 agent",
+                f"警告：subagents/{p.name} 的 frontmatter 缺 {'、'.join(missing)}，"
+                "多数工具会忽略该 subagent",
                 file=sys.stderr,
             )
             ok = False
         elif fm.get("name") != p.stem:
             print(
-                f"警告：agents/{p.name} 的 frontmatter name 是 {fm.get('name')}，"
+                f"警告：subagents/{p.name} 的 frontmatter name 是 {fm.get('name')}，"
                 "与文件名不一致（部分工具以文件名为身份）",
                 file=sys.stderr,
             )
     return ok
 
 
-def run_agents(
+def run_subagents(
     command: str, targets: list[Target], names: list[str], force: bool, dry_run: bool
 ) -> tuple[bool, bool]:
-    """转换式安装 agents，返回 (是否有输出, 是否失败)。names 为空表示全部。"""
-    files = discover_agents()
+    """转换式安装 subagents，返回 (是否有输出, 是否失败)。names 为空表示全部。"""
+    files = discover_subagents()
     if names:
         stems = {p.stem for p in files}
         unknown = [n for n in names if n not in stems]
         if unknown:
             print(
-                f"错误：agents/ 下没有 {'、'.join(unknown)}"
+                f"错误：subagents/ 下没有 {'、'.join(unknown)}"
                 f"（可用：{'、'.join(sorted(stems)) or '无'}）",
                 file=sys.stderr,
             )
@@ -581,18 +581,18 @@ def run_agents(
         selected = files
     if not selected:
         return False, False
-    check_agent_source(selected)
+    check_subagent_source(selected)
 
     failed = False
-    print(f"Agents: {REPO_AGENTS}（转换式安装：真源为 Claude Code 格式，按目标转换）")
+    print(f"Subagents: {REPO_SUBAGENTS}（转换式安装：真源为 Claude Code 格式，按目标转换）")
     for t in targets:
         if not _prepare_target_dir(t, command, dry_run):
             failed |= command == "status"
             continue
         for p in selected:
             try:
-                fm, overrides, body = parse_agent_file(p)
-                content, warnings = convert_agent(p.stem, fm, overrides, body, t)
+                fm, overrides, body = parse_subagent_file(p)
+                content, warnings = convert_subagent(p.stem, fm, overrides, body, t)
             except (ValueError, OSError) as exc:
                 print(f"  ! {p.stem} → {t.key}: 转换失败：{exc}")
                 failed = True
@@ -630,7 +630,7 @@ def resolve_targets(specs: list[str] | None, parser: argparse.ArgumentParser) ->
             continue
         if spec not in TARGETS:
             parser.error(
-                f"未知 agents 目标 {spec}（可用：{'、'.join(TARGETS)}、all）"
+                f"未知 subagent 目标 {spec}（可用：{'、'.join(TARGETS)}、all）"
             )
         if TARGETS[spec] not in chosen:
             chosen.append(TARGETS[spec])
@@ -640,55 +640,55 @@ def resolve_targets(specs: list[str] | None, parser: argparse.ArgumentParser) ->
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="python scripts/install.py",
-        description="技能逐个链接进 ~/.agents/skills（共享格式根）；agents 以 Claude Code 标准为真源，安装时按目标工具转换格式写入。",
-        epilog="不带子命令 = 一键安装全部。例：python scripts/install.py agent rust-web-engineer",
+        description="技能逐个链接进 ~/.agents/skills（共享格式根）；subagents 以 Claude Code 标准为真源，安装时按目标工具转换格式写入。",
+        epilog="不带子命令 = 一键安装全部。例：python scripts/install.py subagent rust-web-engineer",
     )
     parser.add_argument(
         "-n",
         "--dry-run",
         action="store_true",
-        help="预览模式：只演示将做什么，不实际改动（配合 skill/agent/remove）",
+        help="预览模式：只演示将做什么，不实际改动（配合 skill/subagent/remove）",
     )
-    sub = parser.add_subparsers(dest="command", metavar="{skill,agent,status,remove}")
+    sub = parser.add_subparsers(dest="command", metavar="{skill,subagent,status,remove}")
 
     p_skill = sub.add_parser("skill", help="安装/修复技能链接（缺省全部技能）")
     p_skill.add_argument("names", nargs="*", help="技能名，缺省全部")
     p_skill.add_argument("-n", "--dry-run", action="store_true", help=argparse.SUPPRESS)
 
-    p_agent = sub.add_parser(
-        "agent", help="转换安装 subagent（缺省全部；默认目标 claude,zcode）"
+    p_subagent = sub.add_parser(
+        "subagent", help="转换安装 subagent（缺省全部；默认目标 claude,zcode）"
     )
-    p_agent.add_argument("names", nargs="*", help="agent 名，缺省全部")
-    p_agent.add_argument(
+    p_subagent.add_argument("names", nargs="*", help="subagent 名，缺省全部")
+    p_subagent.add_argument(
         "--to",
         action="append",
         default=None,
         metavar="TARGET",
         help="安装目标，可重复/逗号分隔：claude、zcode、codex、gemini、opencode、copilot 或 all",
     )
-    p_agent.add_argument("-n", "--dry-run", action="store_true", help=argparse.SUPPRESS)
+    p_subagent.add_argument("-n", "--dry-run", action="store_true", help=argparse.SUPPRESS)
 
     p_status = sub.add_parser("status", help="查看安装状态（有未就位项时退出码为 1）")
     p_status.add_argument(
-        "kind", nargs="?", choices=("skill", "agent"), help="只看一类，缺省两类"
+        "kind", nargs="?", choices=("skill", "subagent"), help="只看一类，缺省两类"
     )
     p_status.add_argument(
         "--to",
         action="append",
         default=None,
         metavar="TARGET",
-        help="只看这些 agent 目标（默认 claude,zcode）",
+        help="只看这些 subagent 目标（默认 claude,zcode）",
     )
 
     p_remove = sub.add_parser("remove", help="卸载：只移除本脚本生成的链接/文件")
     p_remove.add_argument(
-        "kind", nargs="?", choices=("skill", "agent"), help="只卸一类，缺省两类"
+        "kind", nargs="?", choices=("skill", "subagent"), help="只卸一类，缺省两类"
     )
     p_remove.add_argument(
-        "--to", action="append", default=None, metavar="TARGET", help="只卸这些 agent 目标"
+        "--to", action="append", default=None, metavar="TARGET", help="只卸这些 subagent 目标"
     )
     p_remove.add_argument(
-        "--force", action="store_true", help="内容不一致的 agent 文件/非本仓库链接也移除"
+        "--force", action="store_true", help="内容不一致的 subagent 文件/非本仓库链接也移除"
     )
     p_remove.add_argument("-n", "--dry-run", action="store_true", help=argparse.SUPPRESS)
 
@@ -708,14 +708,14 @@ def main(argv: list[str] | None = None) -> int:
     names = list(dict.fromkeys(getattr(args, "names", []) or []))
 
     failed = False
-    op = {"skill": "add", "agent": "add", "status": "status", "remove": "remove"}.get(
+    op = {"skill": "add", "subagent": "add", "status": "status", "remove": "remove"}.get(
         command, "add"
     )
     do_skills = command in (None, "skill") or (
         command in ("status", "remove") and kind in (None, "skill")
     )
-    do_agents = command in (None, "agent") or (
-        command in ("status", "remove") and kind in (None, "agent")
+    do_subagents = command in (None, "subagent") or (
+        command in ("status", "remove") and kind in (None, "subagent")
     )
 
     if do_skills:
@@ -725,13 +725,13 @@ def main(argv: list[str] | None = None) -> int:
             op, names if command == "skill" else [], DEFAULT_TARGET, force, dry_run
         )
 
-    if do_agents:
+    if do_subagents:
         targets = resolve_targets(to, parser)
-        agent_names = names if command == "agent" else []
-        produced, agents_failed = run_agents(op, targets, agent_names, force, dry_run)
-        failed |= agents_failed
-        if not produced and not agent_names:
-            print(f"Agents: {REPO_AGENTS}（无 agent，跳过）")
+        subagent_names = names if command == "subagent" else []
+        produced, subagents_failed = run_subagents(op, targets, subagent_names, force, dry_run)
+        failed |= subagents_failed
+        if not produced and not subagent_names:
+            print(f"Subagents: {REPO_SUBAGENTS}（无 subagent，跳过）")
 
     return 1 if failed else 0
 

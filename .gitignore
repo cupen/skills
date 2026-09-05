@@ -1,2 +1,2 @@
-# 私有 subagent（不进公开仓库，但随 agents/ 整目录链接进入各工具）
-agents/x-*
+# 私有 subagent（不进公开仓库，安装时转换分发到各工具）
+subagents/x-*
