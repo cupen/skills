@@ -2,6 +2,10 @@
 
 Agent 随身工具箱：跨项目可复用的技能（skills）与一键安装脚本（python）。
 
+技能格式遵循 [Agent Skills Specification](https://agentskills.io/specification)：
+每个技能是一个目录，必含 `SKILL.md`（YAML frontmatter + Markdown 正文），
+frontmatter 必填 `name` 与 `description`。
+
 ## 布局
 
 ```text
@@ -9,6 +13,11 @@ agent-kit/
 ├── skills/       # 公开技能：每个子目录一个 <name>/SKILL.md
 └── scripts/      # 一键安装/配置脚本（python）
 ```
+
+## 技能
+
+- [git-finish](skills/git-finish/SKILL.md) — worktree 收尾：conventional commits、合回 main、重新验收、推送、总结。
+- [git-worktree](skills/git-worktree/SKILL.md) — 开工区（仅显式调用）：入参功能名与分支名，在旁边建 `../<仓库名>-<功能名>` worktree；分支已存在则复用、不存在则 fork，创建前交互预览。
 
 ## 安装技能
 
@@ -58,5 +67,11 @@ python scripts/install.py add -n         # dry-run：只演示将做什么，不
 
 ## 约定
 
+- 技能格式遵循 [Agent Skills 规范](https://agentskills.io/specification)：`SKILL.md`
+  frontmatter 必填 `name`、`description`；`name` 为 kebab-case、长度 ≤64、
+  不以连字符开头/结尾、不含连续连字符，且**必须与目录名一致**。
+- `description` 承载「做什么 + 何时触发」，控制在 ≤250 字符（部分客户端只向模型
+  展示前 ~250 字符，超出即不可见）；仅主动调用的技能在开头写明
+  `Explicit invocation ONLY`。
 - 技能目录名 = SKILL.md frontmatter 里的 `name`（kebab-case）。
 - 私有技能若要避免与未来脚本混淆，目录名可用 `x-` 前缀。

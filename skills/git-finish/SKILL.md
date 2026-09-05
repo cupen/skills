@@ -1,6 +1,6 @@
 ---
 name: git-finish
-description: Session wrap-up for the current git worktree — commit finished work, rebase/integrate into main, re-verify, push, and summarize. Explicit invocation ONLY — trigger when the user calls /git-finish or explicitly asks to run "git-finish" by name. Do NOT auto-trigger on phrases like 收尾 / 打扫 / 收工 / wrap up / 提交并推送 alone; those words may refer to other workflows. Only a direct, unambiguous reference to this skill starts it. Calling it is the user's explicit authorization to commit and push.
+description: Git worktree wrap-up: commit finished work as conventional commits, integrate into main, re-verify, push, and summarize. Explicit invocation ONLY: run /git-finish or ask to run git-finish by name; never auto-trigger on 收尾 / 收工 / wrap up alone.
 ---
 
 # Git 工作目录收尾（git-finish）
