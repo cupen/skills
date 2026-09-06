@@ -303,6 +303,7 @@ TARGETS: dict[str, Target] = {
             ("tools", "tools"), ("disallowedTools", "disallowedTools"),
             ("maxTurns", "maxTurns"), ("color", "color"), ("mcpServers", "mcpServers"),
             ("permissionMode", "permissionMode"),
+            ("author", "author"), ("version", "version"),
         ),
         prompt_field=None,
     ),
@@ -316,6 +317,7 @@ TARGETS: dict[str, Target] = {
             ("tools", "tools"), ("disallowedTools", "disallowedTools"),
             ("maxTurns", "maxTurns"), ("color", "color"), ("mcpServers", "mcpServers"),
             ("thoughtLevel", "thoughtLevel"), ("injectAgentsMd", "injectAgentsMd"),
+            ("author", "author"), ("version", "version"),
         ),
         prompt_field=None,
     ),
@@ -338,6 +340,7 @@ TARGETS: dict[str, Target] = {
             ("name", "name"), ("description", "description"), ("model", "model"),
             ("tools", "tools"), ("mcpServers", "mcpServers"),
             ("maxTurns", "max_turns"), ("temperature", "temperature"),
+            ("author", "author"), ("version", "version"),
         ),
         prompt_field=None,
         tools_list=True,
@@ -350,6 +353,7 @@ TARGETS: dict[str, Target] = {
         fields=(
             ("description", "description"), ("model", "model"),
             ("temperature", "temperature"),
+            ("author", "author"), ("version", "version"),
         ),
         prompt_field=None,
         fixed={"mode": "subagent"},  # 文件名即身份，强制为 subagent 模式
@@ -362,6 +366,7 @@ TARGETS: dict[str, Target] = {
         fields=(
             ("name", "name"), ("description", "description"), ("model", "model"),
             ("tools", "tools"), ("mcpServers", "mcp-servers"),
+            ("author", "author"), ("version", "version"),
         ),
         prompt_field=None,
         tools_list=True,

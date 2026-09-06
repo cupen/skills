@@ -106,7 +106,7 @@ python scripts/install.py -n                 # dry-run：只演示将做什么�
 - subagent 文件名 = frontmatter 里的 `name`（kebab-case）；`description` 写清
   「做什么 + 何时委派」，同样 ≤250 字符；正文即系统提示词。
 - subagent 基础 frontmatter 只写**交集字段**（`name`、`description`，可选 `model`/
-  `tools`/`maxTurns` 等）；某目标独有的配置写进 `targets:` 段（键用目标原生拼写，
+  `tools`/`maxTurns` 等，`author`/`version` 会透传给除 codex 外的目标）；某目标独有的配置写进 `targets:` 段（键用目标原生拼写，
   安装时按目标注入），映射不到目标的基础字段会被丢弃并在安装时警告。
   例：`targets: { codex: { sandbox_mode: workspace-write } }`。
 - `model` 省略时用各工具默认模型；Codex 目标按官方 agent role 校验（未知键会拒绝），

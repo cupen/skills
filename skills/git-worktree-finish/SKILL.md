@@ -1,6 +1,9 @@
 ---
 name: git-worktree-finish
 description: "Explicit invocation ONLY: /git-worktree-finish or ask by name; never auto-trigger on 收尾 / worktree 清理 mentions. Invokes the git-finish skill on each non-main worktree sequentially, then lists all worktrees for the user to pick which to remove."
+metadata:
+  author: "cupen <xcupen@gmail.com>"
+  version: "0.1.0"
 ---
 
 # Git Worktree 批量收尾（git-worktree-finish）

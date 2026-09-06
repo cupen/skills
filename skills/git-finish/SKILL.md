@@ -1,6 +1,9 @@
 ---
 name: git-finish
 description: "Git worktree wrap-up: conventional commits, rebase onto latest main then merge --no-ff into main (keeps branch history), re-verify, push, summarize. Explicit invocation ONLY: /git-finish or ask by name; never auto-trigger on 收尾 / 收工 / wrap up alone."
+metadata:
+  author: "cupen <xcupen@gmail.com>"
+  version: "0.1.0"
 ---
 
 # Git 工作目录收尾（git-finish）

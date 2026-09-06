@@ -1,6 +1,9 @@
 ---
 name: git-worktree
 description: "Explicit invocation ONLY: run /git-worktree or ask for git-worktree by name; never auto-trigger on worktree / 并行开发 mentions. Args: 功能名 then 分支名. Creates ../<repo>-<功能名>, reuses the branch if it exists else forks it, previews before creating."
+metadata:
+  author: "cupen <xcupen@gmail.com>"
+  version: "0.1.0"
 ---
 
 # Git Worktree 开工区（git-worktree）
