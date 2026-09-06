@@ -1,6 +1,6 @@
 ---
 name: git-worktree-finish
-description: "Explicit invocation ONLY: run /git-worktree-finish or ask for git-worktree-finish by name; never auto-trigger on 收尾 / worktree 清理 mentions. Runs git-finish in each non-main worktree, then lists all worktrees for the user to pick which to remove."
+description: "Explicit invocation ONLY: /git-worktree-finish or ask by name; never auto-trigger on 收尾 / worktree 清理 mentions. Invokes the git-finish skill on each non-main worktree sequentially, then lists all worktrees for the user to pick which to remove."
 ---
 
 # Git Worktree 批量收尾（git-worktree-finish）
@@ -17,7 +17,7 @@ git worktree list --porcelain   # 全部 worktree；第一条是主 worktree
 git worktree prune -n           # 预览：有哪些失效记录（目录已被手删）可清
 ```
 
-主 worktree（列表第一条，通常检出 main）是集成点：各分支集成进 main 的快进操作在检出 main 的 worktree 执行，它自身一般无需收尾。顺手看一眼 main 是否领先远端（主 worktree 里 `git rev-list --count origin/main..main`），领先则计划里加一条「推送 main」。
+主 worktree（列表第一条，通常检出 main）是集成点：各分支集成进 main 的合入操作在检出 main 的 worktree 执行，它自身一般无需收尾。顺手看一眼 main 是否领先远端（主 worktree 里 `git rev-list --count origin/main..main`），领先则计划里加一条「推送 main」。
 
 对每个非主 worktree 判断是否需要收尾：
 
@@ -44,7 +44,7 @@ git -C <路径> rev-list --count main..<分支>   # 0 = 分支已并入 main
 
 ## 2. 逐个收尾
 
-按确认的顺序，对每个 worktree 完整走 git-finish：提交（conventional commits，按逻辑拆分）→ rebase origin/main → 在检出 main 的 worktree `git merge --ff-only <分支>` 快进 main（保持线性历史）→ 重新验收（测试 / 构建门禁）→ 推送 → 一句话总结。
+按确认的顺序，对每个 worktree 完整走 git-finish：提交（conventional commits，按逻辑拆分）→ rebase origin/main → 在检出 main 的 worktree `git merge --no-ff <分支>` 合入 main（保留分支历史）→ 重新验收（测试 / 构建门禁）→ 推送 → 一句话总结。
 
 - 每完成一个记一行结果：完成（commit 概况）或失败（原因）。
 - 某个 worktree 卡住（冲突解不掉、测试红修不好）→ 标「收尾失败」，跳到下一个，**不让一个卡点堵死整批**；失败的原地保留，最后统一报告。
