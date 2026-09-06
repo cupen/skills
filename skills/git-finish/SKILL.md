@@ -1,68 +1,80 @@
 ---
 name: git-finish
-description: "Git worktree wrap-up: commit work as conventional commits, rebase onto main for linear history, re-verify, push, and summarize. Explicit invocation ONLY: run /git-finish or ask for git-finish by name; never auto-trigger on 收尾 / 收工 / wrap up alone."
+description: "Git worktree wrap-up: conventional commits, rebase onto latest main then merge --no-ff into main (keeps branch history), re-verify, push, summarize. Explicit invocation ONLY: /git-finish or ask by name; never auto-trigger on 收尾 / 收工 / wrap up alone."
 ---
 
 # Git 工作目录收尾（git-finish）
 
-目标：会话结束时把工作区整理成**已提交、已集成（线性历史）、已验收、已推送**的状态，并以简短总结收束。用户调用本 skill 即视为对提交与推送的显式授权（覆盖默认的保守 git 策略），但只限本次调用范围内摸清的工作。
+目标：会话结束时把工作区整理成**已提交、已集成（rebase + `--no-ff` merge）、已验收、已推送**的状态，以简短总结收束。调用本 skill 即视为对提交与推送的显式授权（覆盖默认保守 git 策略），但仅限本次摸清的工作。
 
 ## 0. 摸清现场
 
 ```bash
 git status --short                          # 改动与未跟踪文件
 git branch --show-current                   # 当前分支
-git log --oneline -5                        # 最近提交（了解既有提交风格）
+git log --oneline -5                        # 最近提交（提交风格）
 git rev-parse --git-dir --git-common-dir    # 两者不同 = 在 worktree 里
 ```
 
-- 查看仓库的 AGENTS.md / CLAUDE.md / README / CI 配置，确定两件事：**提交信息规范**（conventional commits、语言偏好）与**验证命令**（第 3 步的验收门禁用什么）。
-- 在 worktree 中时注意：main 通常由主 worktree 持有，集成进 main 的操作（rebase 后快进 main）需在检出 main 的 worktree 执行（`git worktree list` 确认）。
+- 看仓库的 AGENTS.md / CLAUDE.md / README / CI 配置，确认**提交信息规范**（conventional commits、语言）与**验证命令**（第 3 步门禁）。
+- worktree 中 main 通常由主 worktree 持有，合入 main 须在检出 main 的 worktree 执行（`git worktree list` 确认）。
 
 ## 1. 提交已完成的工作
 
-- 先浏览 `git diff` 与未跟踪文件，确认改动内容与归属。构建产物、依赖目录、秘密文件（.env、密钥、凭据）**不提交**；发现与本会话无关的陌生改动时，单独成提交并在总结中标注，不与本次工作混装。
-- 按逻辑层拆分 conventional commits，单句主题行（语言跟随仓库既有风格）。一次收尾通常 1–4 个提交，例如：后端协议、内核/服务、前端、文档各成一体。拆分让 review 与回滚都有着力点，但不要为了拆而拆。
-- 没有任何改动 → 直接跳到第 2 步。
+- 浏览 `git diff` 与未跟踪文件，确认改动归属。构建产物、依赖目录、秘密文件（.env、密钥、凭据）**不提交**；与本会话无关的陌生改动单独成提交、总结中标注，不混装。
+- 按逻辑层拆分 conventional commits（语言随仓库风格），通常 1–4 个：后端、内核/服务、前端、文档各成一体。拆分便于 review 与回滚，但不为拆而拆。
+- 提交信息**默认只有主题行**：`<type>: <一句话说清做了什么>`。内容实在太多才加正文：主题行后空一行，第三行起编号列表——
 
-## 2. 集成（保持线性历史）
+  ```text
+  refactor: 统一配置加载，拆出 env 解析模块
 
-目标：main 的提交记录是一条直线，分支工作整体重放到最新 main 之上，不产生 merge commit。交错的历史难以追踪与回滚，线性历史让每个提交都落在明确的基线上。
+  1. 配置统一走 config 模块，废弃直读 os.environ
+  2. 修复启动时重复读取 .env
+  ```
 
-**当前在 main**：
+  列表只说重点，不陷细节；尽量 ≤3 条，绝不超过 5 条；有重要说明时次要问题省略。
+- 没有改动 → 直接跳到第 2 步。
+
+## 2. 集成（rebase 到最新 main，分支再 `--no-ff` 合入）
+
+目标：把工作重放到最新 main 之上。工作在 main 上，rebase 完即集成完毕；在 feature 分支上，rebase 后以 `--no-ff` 合入 main——merge commit 把分支工作作为完整单元留在 main 历史，分出点与合入点一目了然，review 与回滚都以分支为单位。
+
+**工作在 main 上**：
 
 ```bash
 git fetch origin
 git rebase origin/main
 ```
 
-**当前在其它分支或 worktree**：
+rebase 完 → 集成结束，直接进入第 3 步验收。
+
+**工作在分支或 worktree**：
 
 ```bash
 git fetch origin
-git rebase origin/main   # 把整个分支重放到最新 main 之上；无远端时用本地 main
+git rebase origin/main   # 分支重放到最新 main 之上；无远端时用本地 main
 ```
 
-rebase 完成后把 main 快进到分支顶端：检出 main（或到主 worktree），执行
+rebase 后合入 main：检出 main（或到主 worktree），执行
 
 ```bash
-git merge --ff-only <branch>
+git merge --no-ff <branch> -m "merge: <一句话概述该分支的工作>"
 ```
 
-rebase 之后分支已包含 main 的全部历史，`--ff-only` 必然成功；若失败说明 main 在此期间又前进了，回到 `git fetch` 重新 rebase 一轮，仍失败则停下报告。
-
-- **默认不用 `--no-ff` merge**。仅当仓库有明确的 merge-based 约定（如 CI 依赖 merge commit）或用户点名要 merge 时才用。
-- 解决冲突时警惕上游的**语义漂移**：上游可能新增了枚举变体、改了函数签名、重构了你要改的模块。机械地合并标记通过 ≠ 语义正确 —— 重放你的改动到上游新结构上，补上上游新增 case 的处理。
-- rebase 会改写提交哈希：若分支此前推送过远端，本地会与远端分叉。本流程只推集成目标分支（第 4 步），不受影响；用户额外要求推工作分支时须明确同意 `--force-with-lease`。
-- rebase 过程出问题可 `git rebase --abort` 回到起点重来，不硬撑。
+- merge 信息一句话说明集成了什么，跟随仓库风格；不便拟写时用 `--no-edit`。
+- main 又前进了（本地落后 origin/main）→ 先快进本地 main，回分支重新 rebase 再合并，不在旧基线上合并。
+- 仓库明确约定线性历史（CI 强制 fast-forward / squash）或用户点名时，才改用 `git merge --ff-only`。
+- 解冲突警惕上游**语义漂移**：上游可能新增枚举变体、改签名、重构你的模块。标记机械合过 ≠ 语义正确——把改动重放到上游新结构上，补齐新增 case。
+- rebase 改写提交哈希，推送过的分支会与远端分叉；本流程只推集成分支（第 4 步），不受影响。要推工作分支须用户明确同意 `--force-with-lease`。
+- rebase 出问题 `git rebase --abort` 回起点重来，不硬撑。
 
 ## 3. 测试验收
 
-集成（rebase / 快进）之后**必须重新验收** —— rebase 前的绿不代表 rebase 后的绿，上游语义变化可能静默破坏行为。
+集成后**必须重新验收**——rebase 前的绿不代表 rebase 后的绿，上游语义变化可能静默破坏行为。
 
-- 按第 0 步确定的仓库门禁跑测试与构建（Rust 仓库通常是 `cargo test` + `cargo build`；Node 仓库是 `pnpm test` + `pnpm build`；无明确门禁时至少构建通过）。
-- 失败 → 修复后补提交，再回到第 2 步检查是否需要再 rebase。
-- 无法修复 → **停下**，报告卡点，不推送。带着红测试推送比不推送更糟。
+- 跑第 0 步确定的门禁（Rust：`cargo test` + `cargo build`；Node：`pnpm test` + `pnpm build`；无门禁时至少构建通过）。
+- 失败 → 修复补提交，回第 2 步看是否需再 rebase。
+- 无法修复 → **停下**报告卡点，不推送；带红测试推送比不推送更糟。
 
 ## 4. 推送
 
@@ -70,13 +82,13 @@ rebase 之后分支已包含 main 的全部历史，`--ff-only` 必然成功；�
 git push
 ```
 
-- 被拒（non-fast-forward）→ `git fetch && git rebase origin/main` 后重试一次；再失败则停下报告。
+- 被拒（non-fast-forward）→ `git fetch && git rebase origin/main` 后重试一次；再失败停下报告。
 - **不 force-push**，除非用户明说。
-- 只推集成目标分支（通常 main，或用户指名的分支），不顺手推送无关分支。
+- 只推集成分支（通常 main），不顺手推无关分支。
 
 ## 5. 总结
 
-简练、按重要性排列、不陷入细节。结论先行，工作 3–5 条以内，如实记录边界：
+简练、按重要性排列、结论先行，工作 3–5 条，如实记录边界：
 
 ```text
 收尾完成，已推送 main（<commit 范围概述>）。
@@ -87,4 +99,4 @@ git push
 - 遗留：<已知问题 / 后续建议，没有则不写>
 ```
 
-边界记录是收尾的职责之一：哪些路径只被测试覆盖、哪些需要真实环境才能验证、哪些决定是当场拍的 —— 下一会话或下一个人靠这段接手。
+边界如实记：哪些只被测试覆盖、哪些要真实环境才能验证、哪些是当场拍的——下一会话或下一个人靠这段接手。
