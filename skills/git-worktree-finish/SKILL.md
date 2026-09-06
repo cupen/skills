@@ -1,6 +1,6 @@
 ---
 name: git-worktree-finish
-description: Explicit invocation ONLY: run /git-worktree-finish or ask for git-worktree-finish by name; never auto-trigger on 收尾 / worktree 清理 mentions. Runs git-finish in each non-main worktree, then lists all worktrees for the user to pick which to remove.
+description: "Explicit invocation ONLY: run /git-worktree-finish or ask for git-worktree-finish by name; never auto-trigger on 收尾 / worktree 清理 mentions. Runs git-finish in each non-main worktree, then lists all worktrees for the user to pick which to remove."
 ---
 
 # Git Worktree 批量收尾（git-worktree-finish）

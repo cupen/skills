@@ -1,6 +1,6 @@
 ---
 name: git-finish
-description: Git worktree wrap-up: commit work as conventional commits, rebase onto main for linear history, re-verify, push, and summarize. Explicit invocation ONLY: run /git-finish or ask for git-finish by name; never auto-trigger on 收尾 / 收工 / wrap up alone.
+description: "Git worktree wrap-up: commit work as conventional commits, rebase onto main for linear history, re-verify, push, and summarize. Explicit invocation ONLY: run /git-finish or ask for git-finish by name; never auto-trigger on 收尾 / 收工 / wrap up alone."
 ---
 
 # Git 工作目录收尾（git-finish）
