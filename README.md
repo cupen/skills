@@ -25,7 +25,9 @@ agent-kit/
 
 - [git-finish](skills/git-finish/SKILL.md) — worktree 收尾：conventional commits、rebase 后 `--no-ff` 合入 main 保留分支历史、重新验收、推送、总结。
 - [git-worktree](skills/git-worktree/SKILL.md) — 开工区（仅显式调用）：入参功能名与分支名，在旁边建 `../<仓库名>-<功能名>` worktree；分支已存在则复用、不存在则 fork，创建前交互预览。
+- [git-worktree-update](skills/git-worktree-update/SKILL.md) — 批量同步（仅显式调用）：把每个 worktree 的分支依次 rebase 到最新 main，就地解决冲突并保持各分支解法一致；不合入、不推送。
 - [git-worktree-finish](skills/git-worktree-finish/SKILL.md) — 批量收尾（仅显式调用）：对每个 worktree 依次执行 git-finish，完成后列出全部 worktree，让用户挑选删除。
+- [devenv-install](skills/devenv-install/SKILL.md) — 开发环境安装（仅显式调用）：逐个工具从官网取证、生成安装命令供逐个审阅后执行；下载不通时询问是否大陆用户，提供镜像备选。
 
 ## Subagents
 
