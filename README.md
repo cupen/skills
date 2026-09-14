@@ -28,14 +28,9 @@ agent-kit/
 - [git-worktree-update](skills/git-worktree-update/SKILL.md) — 批量同步（仅显式调用）：把每个 worktree 的分支依次 rebase 到最新 main，就地解决冲突并保持各分支解法一致；不合入、不推送。
 - [git-worktree-finish](skills/git-worktree-finish/SKILL.md) — 批量收尾（仅显式调用）：对每个 worktree 依次执行 git-finish，完成后列出全部 worktree，让用户挑选删除。
 - [devenv-install](skills/devenv-install/SKILL.md) — 开发环境安装（仅显式调用）：逐个工具从官网取证、生成安装命令供逐个审阅后执行；下载不通时询问是否大陆用户，提供镜像备选。
-- [grill-me](skills/grill-me/SKILL.md) — 拷问式访谈入口（仅显式调用）：对方案/设计发起连环追问直至达成共识；薄入口，转调 grilling。
-- [grilling](skills/grilling/SKILL.md) — 拷问引擎：把方案画成决策树按轮推进，每轮抛出全部「当前可答」的问题并附推荐答案；事实自己派 sub-agent 查、决策交用户拍板，可答集清空即收束。
-- [grill-with-docs](skills/grill-with-docs/SKILL.md) — 拷问 + 沉淀文档（仅显式调用）：访谈同时把决策写成 ADR、术语沉淀进 CONTEXT.md；薄入口，转调 grilling + domain-modeling。
-- [domain-modeling](skills/domain-modeling/SKILL.md) — 领域建模：挑战术语、场景压测、与代码交叉核对，惰性维护 `CONTEXT.md` 词汇表与 `docs/adr/` 决策记录（含两个格式文件）。
-- [teach](skills/teach/SKILL.md) — 多会话教学工作区（仅显式调用）：以 MISSION 为锚、最近发展区定难度，产出自包含 HTML 课程与速查参考，配套资源库、词汇表、学习记录（含 4 个格式文件）。
 - [spec-go](skills/spec-go/SKILL.md) — spec change 串行执行编排（仅显式调用）：openspec-explore 浏览 changes、分析依赖定串行路线，报告确认后逐个派 subagent 实现＋验收＋补测试（含 e2e），全部完成整体测试再转 git-finish 收尾。
-
-以上 grill 系列、domain-modeling、teach 移植自 [mattpocock/skills](https://github.com/mattpocock/skills)（MIT，frontmatter `metadata.source` 有记录）：入口壳连同其依赖一起搬入，正文译为中文。
+- [spec-new](skills/spec-new/SKILL.md) — 新 spec change 立项（仅显式调用）：围绕主题用 grill-me 持续拷问直到完全理解需求，再走 openspec-propose 生成 proposal/design/specs/tasks 全套规划工件；只规划不实现，实现交给 spec-go。
+- [skills-install](skills/skills-install/SKILL.md) — 第三方技能安装（仅显式调用）：内置预设一键装知名技能（grill-me 一组四件、ui-ux-pro-max 一组七件）；预设外让用户给官方地址，只用网页抓取取证（禁网络搜索、禁 curl），防 prompt 注入。
 
 ## Subagents
 
