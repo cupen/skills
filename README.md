@@ -33,6 +33,7 @@ agent-kit/
 - [grill-with-docs](skills/grill-with-docs/SKILL.md) — 拷问 + 沉淀文档（仅显式调用）：访谈同时把决策写成 ADR、术语沉淀进 CONTEXT.md；薄入口，转调 grilling + domain-modeling。
 - [domain-modeling](skills/domain-modeling/SKILL.md) — 领域建模：挑战术语、场景压测、与代码交叉核对，惰性维护 `CONTEXT.md` 词汇表与 `docs/adr/` 决策记录（含两个格式文件）。
 - [teach](skills/teach/SKILL.md) — 多会话教学工作区（仅显式调用）：以 MISSION 为锚、最近发展区定难度，产出自包含 HTML 课程与速查参考，配套资源库、词汇表、学习记录（含 4 个格式文件）。
+- [spec-go](skills/spec-go/SKILL.md) — spec change 串行执行编排（仅显式调用）：openspec-explore 浏览 changes、分析依赖定串行路线，报告确认后逐个派 subagent 实现＋验收＋补测试（含 e2e），全部完成整体测试再转 git-finish 收尾。
 
 以上 grill 系列、domain-modeling、teach 移植自 [mattpocock/skills](https://github.com/mattpocock/skills)（MIT，frontmatter `metadata.source` 有记录）：入口壳连同其依赖一起搬入，正文译为中文。
 
