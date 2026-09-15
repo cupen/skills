@@ -14,6 +14,7 @@ metadata:
 
 - `skills-install grill-me` → 查 `presets/grill-me.md`，按预设整组安装
 - `skills-install ui-ux-pro-max` → 查 `presets/ui-ux-pro-max.md`，按预设安装
+- `skills-install openspec` → 查 `presets/openspec.md`，CLI + 技能一组装
 - `skills-install <owner>/<repo>` 或用户给出一处官方 URL → 无预设：走「预设外取证」定安装方式
 - 无入参 → 列出 `presets/` 里的预设名让用户挑
 
