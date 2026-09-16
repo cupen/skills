@@ -1,9 +1,9 @@
 ---
 name: git-finish
-description: "Git worktree wrap-up: conventional commits, rebase onto latest main then merge --no-ff into main (keeps branch history), re-verify, push, summarize. Explicit invocation ONLY: /git-finish or ask by name; never auto-trigger on 收尾 / 收工 / wrap up alone."
+description: "Git worktree wrap-up: conventional commits, rebase onto latest main then merge --no-ff into main（保留分支历史）, re-verify, push, summarize. Explicit invocation ONLY: /git-finish or ask by name; never auto-trigger on 收尾 / 收工 / wrap up alone."
 metadata:
   author: "cupen <xcupen@gmail.com>"
-  version: "0.1.0"
+  version: "0.3.0"
 ---
 
 # Git 工作目录收尾（git-finish）
@@ -17,16 +17,18 @@ git status --short                          # 改动与未跟踪文件
 git branch --show-current                   # 当前分支
 git log --oneline -5                        # 最近提交（提交风格）
 git rev-parse --git-dir --git-common-dir    # 两者不同 = 在 worktree 里
+git remote show origin | grep 'HEAD branch' # 远端主分支名（main / master / …）
 ```
 
 - 看仓库的 AGENTS.md / CLAUDE.md / README / CI 配置，确认**提交信息规范**（conventional commits、语言）与**验证命令**（第 3 步门禁）。
 - worktree 中 main 通常由主 worktree 持有，合入 main 须在检出 main 的 worktree 执行（`git worktree list` 确认）。
+- 远端主分支名下文统称 `main`，实际是 `master` 等时按第 0 步结果替换。
 
 ## 1. 提交已完成的工作
 
-- 浏览 `git diff` 与未跟踪文件，确认改动归属。构建产物、依赖目录、秘密文件（.env、密钥、凭据）**不提交**；与本会话无关的陌生改动单独成提交、总结中标注，不混装。
+- 浏览 `git diff` 与未跟踪文件，确认改动归属。构建产物、依赖目录、秘密文件（.env、密钥、凭据）**不提交**；与本会话无关的陌生改动单独成提交、总结中标注，不混装。"陌生"的判断靠证据不靠记忆——`git log --since='3 days ago' --name-only` 看近期提交涉及哪些文件，对改动自己完全没印象、且不属于本次任务的才单独处理。
 - 按逻辑层拆分 conventional commits（语言随仓库风格），通常 1–4 个：后端、内核/服务、前端、文档各成一体。拆分便于 review 与回滚，但不为拆而拆。
-- 提交信息**默认只有主题行**：`<type>: <一句话说清做了什么>`。内容实在太多才加正文：主题行后空一行，第三行起编号列表——
+- 提交信息**默认只有主题行**：`<type>: <一句话概括做了什么>`，不说细节，控制在 20 字以内，越少越好。内容实在太多才加正文：主题行后空一行，第三行起编号列表——
 
   ```text
   refactor: 统一配置加载，拆出 env 解析模块
@@ -58,7 +60,16 @@ git fetch origin
 git rebase origin/main   # 分支重放到最新 main 之上；无远端时用本地 main
 ```
 
-rebase 后合入 main：检出 main（或到主 worktree），执行
+分支名含糊时（`tmp`、`WIP` 之类）先 `git branch -m <type>/<简短描述>` 再合——merge commit 会引用分支名，留一个能看懂的名字。
+
+rebase 后合入 main：检出 main（或到主 worktree），先确认本地 main 与远端同步——
+
+```bash
+git log --oneline origin/main..main   # 本地领先远端的提交（应为空）
+git log --oneline main..origin/main   # 远端领先本地的提交（应为空）
+```
+
+任一非空说明 main 已被别处推进（另一会话、另一终端），先 `git pull --ff-only`，回到分支重新 rebase 再回来合并。确认为空后执行
 
 ```bash
 git merge --no-ff <branch> -m "merge: <一句话概述该分支的工作>"
@@ -75,7 +86,7 @@ git merge --no-ff <branch> -m "merge: <一句话概述该分支的工作>"
 
 集成后**必须重新验收**——rebase 前的绿不代表 rebase 后的绿，上游语义变化可能静默破坏行为。
 
-- 跑第 0 步确定的门禁（Rust：`cargo test` + `cargo build`；Node：`pnpm test` + `pnpm build`；无门禁时至少构建通过）。
+- 跑第 0 步确定的门禁（Rust：`cargo check --all-targets` 预检 → `cargo build` → `cargo test`；Node：`pnpm build` → `pnpm test`；无门禁时至少构建通过）。先快速编译暴露错，再跑测试，省得一次 test 全重来。
 - 失败 → 修复补提交，回第 2 步看是否需再 rebase。
 - 无法修复 → **停下**报告卡点，不推送；带红测试推送比不推送更糟。
 
@@ -94,12 +105,14 @@ git push
 简练、按重要性排列、结论先行，工作 3–5 条，如实记录边界：
 
 ```text
-收尾完成，已推送 main（<commit 范围概述>）。
+收尾完成，已推送 main（3 commits abc123..def456；或 merge: feat/xxx → main）。
 - <最重要的工作，一句话>
 - <次重要的工作>
 - <再其次>
 - 验证：<门禁结果；什么没验到，为什么>
 - 遗留：<已知问题 / 后续建议，没有则不写>
 ```
+
+`<commit 范围概述>` 写清两件事：**几个提交** 和 **哈希范围**（第一个新提交前一位 `abc1234` 到 `HEAD`）。合入分支的就写 merge commit 主题。
 
 边界如实记：哪些只被测试覆盖、哪些要真实环境才能验证、哪些是当场拍的——下一会话或下一个人靠这段接手。
