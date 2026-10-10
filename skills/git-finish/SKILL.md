@@ -3,7 +3,7 @@ name: git-finish
 description: "Git worktree wrap-up: conventional commits, rebase onto latest main then merge --no-ff into main（保留分支历史）, re-verify, push, summarize. Explicit invocation ONLY: /git-finish or ask by name; never auto-trigger on 收尾 / 收工 / wrap up alone."
 metadata:
   author: "cupen <xcupen@gmail.com>"
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # Git 工作目录收尾（git-finish）
@@ -28,16 +28,16 @@ git remote show origin | grep 'HEAD branch' # 远端主分支名（main / master
 
 - 浏览 `git diff` 与未跟踪文件，确认改动归属。构建产物、依赖目录、秘密文件（.env、密钥、凭据）**不提交**；与本会话无关的陌生改动单独成提交、总结中标注，不混装。"陌生"的判断靠证据不靠记忆——`git log --since='3 days ago' --name-only` 看近期提交涉及哪些文件，对改动自己完全没印象、且不属于本次任务的才单独处理。
 - 按逻辑层拆分 conventional commits（语言随仓库风格），通常 1–4 个：后端、内核/服务、前端、文档各成一体。拆分便于 review 与回滚，但不为拆而拆。
-- 提交信息**默认只有主题行**：`<type>: <一句话概括做了什么>`，不说细节，控制在 20 字以内，越少越好。内容实在太多才加正文：主题行后空一行，第三行起编号列表——
+- 提交信息**默认只有主题行**：`<type>(<scope>): <一句话概括>`，scope 只写最简模块名（见 git-commit-style skill），主题行不超过 20 字，不说细节，越少越好。内容实在太多才加正文：主题行后空一行，第三行起编号列表——
 
   ```text
-  refactor: 统一配置加载，拆出 env 解析模块
+  refactor(config): 统一配置加载
 
-  1. 配置统一走 config 模块，废弃直读 os.environ
+  1. 废弃直读 os.environ，统一走 config 模块
   2. 修复启动时重复读取 .env
   ```
 
-  列表只说重点，不陷细节；尽量 ≤3 条，绝不超过 5 条；有重要说明时次要问题省略。
+  列表只笼统概述，只说重要的 3～5 件事，不陷细节；有重要说明时次要问题省略。
 - 没有改动 → 直接跳到第 2 步。
 
 ## 2. 集成（rebase 到最新 main，分支再 `--no-ff` 合入）
