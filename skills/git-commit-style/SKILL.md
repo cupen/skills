@@ -1,6 +1,6 @@
 ---
 name: git-commit-style
-description: "Git 提交信息规范（Conventional Commits）：scope 只写最简模块名（如 auth 不写 auth-config、ui 不写 ui-server-deploy，openspec 写 spec）；标题一句话不超过 20 字，正文空一行后只笼统概述 3~5 件要事。凡是要 git commit、拟写提交信息、整理或 review 提交历史时使用；用户提到提交规范 / commit message / conventional commits 也触发。"
+description: "Git 提交信息规范（Conventional Commits）：scope 只写最简模块名（写 auth, ui, 不写 auth-config、ui-server，写 spec, 不写 openspec）；标题一句话不超过 20 字，正文空一行后只笼统概述 3~5 件要事。凡是要 git commit、拟写提交信息、整理或 review 提交历史时使用；用户提到提交规范 / commit message / conventional commits 也触发。"
 metadata:
   author: "cupen <xcupen@gmail.com>"
   version: "0.2.1"
