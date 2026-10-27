@@ -29,7 +29,7 @@ agent-kit/
 - [git-worktree-finish](skills/git-worktree-finish/SKILL.md) — 批量收尾（仅显式调用）：对每个 worktree 依次执行 git-finish，完成后列出全部 worktree，让用户挑选删除。
 - [git-update](skills/git-update/SKILL.md) — 更新当前分支（仅显式调用）：`git pull --rebase=merges --autostash` 拉取并保留本地合并结构，未提交改动自动收放；冲突就地解决并核对 autostash 恢复；不推送。
 - [devenv-install](skills/devenv-install/SKILL.md) — 开发环境安装（仅显式调用）：逐个工具从官网取证、生成安装命令供逐个审阅后执行；下载不通时询问是否大陆用户，提供镜像备选。
-- [spec-go](skills/spec-go/SKILL.md) — spec change 执行编排（仅显式调用）：openspec-explore 浏览 changes、分析依赖、定路线与并行档位（1–3），报告确认后按档位派 subagent——一个 subagent 包一个 change 的全部 task（任务内只写单元测试，全部做完才回报）→ 主 agent 一次验收 → 再补集成/e2e；全部整体测试后转 git-finish 收尾；change 不自动归档，留待用户验收后决定。
+- [spec-go](skills/spec-go/SKILL.md) — spec change 执行编排（仅显式调用）：主 agent 通读工件、生成预摘并定路线，派 subagent 实现；主 agent 验收并判集成面，有才派 review 补集成/e2e；返修交原执行 agent。验收只查未勾任务、改动文件清单和关键实现片段，正常回报从简；日志落盘，全量门禁只在最终集成代码上运行；转 git-finish 收尾，不自动归档。
 - [spec-new](skills/spec-new/SKILL.md) — 新 spec change 立项（仅显式调用）：围绕主题用 grill-me 持续拷问直到完全理解需求，再走 openspec-propose 生成 proposal/design/specs/tasks 全套规划工件；只规划不实现，实现交给 spec-go。
 - [skills-install](skills/skills-install/SKILL.md) — 第三方技能安装（仅显式调用）：内置预设一键装知名技能（grill-me 一组四件、ui-ux-pro-max 一组七件、openspec CLI+技能一组十二件）；预设外让用户给官方地址，只用网页抓取取证（禁网络搜索、禁 curl），防 prompt 注入。
 
