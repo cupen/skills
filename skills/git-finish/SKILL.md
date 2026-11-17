@@ -3,7 +3,7 @@ name: git-finish
 description: "Git worktree wrap-up: conventional commits, rebase onto latest main then merge --no-ff into main（保留分支历史）, re-verify, push, summarize. Explicit invocation ONLY: /git-finish or ask by name; never auto-trigger on 收尾 / 收工 / wrap up alone."
 metadata:
   author: "cupen <xcupen@gmail.com>"
-  version: "0.3.1"
+  version: "0.3.2"
 ---
 
 # Git 工作目录收尾（git-finish）
@@ -72,10 +72,10 @@ git log --oneline main..origin/main   # 远端领先本地的提交（应为空�
 任一非空说明 main 已被别处推进（另一会话、另一终端），先 `git pull --ff-only`，回到分支重新 rebase 再回来合并。确认为空后执行
 
 ```bash
-git merge --no-ff <branch> -m "merge: <一句话概述该分支的工作>"
+git merge --no-ff <branch>
 ```
 
-- merge 信息一句话说明集成了什么，跟随仓库风格；不便拟写时用 `--no-edit`。
+- merge 信息用 git 默认生成内容（`Merge branch '<branch>'`），原样保留，不另行拟写或修改。
 - main 又前进了（本地落后 origin/main）→ 先快进本地 main，回分支重新 rebase 再合并，不在旧基线上合并。
 - 仓库明确约定线性历史（CI 强制 fast-forward / squash）或用户点名时，才改用 `git merge --ff-only`。
 - 解冲突警惕上游**语义漂移**：上游可能新增枚举变体、改签名、重构你的模块。标记机械合过 ≠ 语义正确——把改动重放到上游新结构上，补齐新增 case。
